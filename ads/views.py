@@ -86,7 +86,8 @@ class AdsCreateView(CreateView):
             price=data['price'],
             description=data['description'],
             is_published=data['is_published'],
-            category_id=data['category_id'], )
+#            category_id=data['category_id'], )
+            category=category, )
 
         return JsonResponse({
             'id': ads.id,
@@ -141,7 +142,7 @@ class AdsDeleteView(DeleteView):
     def delete(self, request, *args, **kwargs):
         super().delete(request, *args, **kwargs)
 
-        return JsonResponse({"status": "ok"}, Status=200)
+        return JsonResponse({"status": "ok"}, status=200)
 
 
 @method_decorator(csrf_exempt, name="dispatch")

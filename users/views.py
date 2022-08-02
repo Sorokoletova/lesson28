@@ -10,6 +10,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 
 from lesson28 import settings
 from users.models import User, Location
+from ads.models import Ads
 
 
 class UserView(ListView):
@@ -18,7 +19,7 @@ class UserView(ListView):
 
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
-#        user_ads = User.objects.annotate(total_ads=Count("ad"))
+        self.object_list = self.object_list.annotate(total_ads=Count('ads'))
         paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -33,6 +34,8 @@ class UserView(ListView):
                 'role': user.role,
                 'age': user.age,
                 'locations': list(map(str, user.locations.all())),
+                'total_ads': len(self.object_list),
+
             })
 
         result = {"items": users,
@@ -75,8 +78,8 @@ class UserCreateView(CreateView):
             age=data["age"],
         )
         for location_name in data["locations"]:
-            location, _ = location.objects.get_or_create(name=location_name)
-            self.object.locations.add(location)
+            location, _ = Location.objects.get_or_create(name=location_name)
+            user.locations.add(location)
 
         return JsonResponse({
             'id': user.id,
@@ -104,9 +107,8 @@ class UserUpdateView(UpdateView):
         self.object.role = data['role']
         self.object.age = data['age']
 
-
         for location_name in data["locations"]:
-            location, _ = location.objects.get_or_create(name=location_name)
+            location, _ = Location.objects.get_or_create(name=location_name)
             self.object.locations.add(location)
 
         self.object.save()
@@ -118,7 +120,7 @@ class UserUpdateView(UpdateView):
             'user_name': self.object.user_name,
             'role': self.object.role,
             'age': self.object.age,
-            'locations': list(map(str, user.locations.all()))
+            'locations': list(map(str, self.object.locations.all()))
         })
 
 
